@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from pythonopensubtitles.opensubtitles import OpenSubtitles
 from pythonopensubtitles.utils import File
 import ConfigParser
@@ -8,7 +9,7 @@ import os
 
 
 config = ConfigParser.RawConfigParser()
-config.read('osdown.cfg')
+config.read(os.path.realpath(__file__)[:-2] + 'cfg')
 osmgr = OpenSubtitles()
 osmgr.login(config.get('Login', 'user'), config.get('Login', 'pass'))
 
@@ -52,7 +53,6 @@ def main():
         langid = sys.argv[2]
     subtitles = find_subtitles(sys.argv[1], langid)
     download_subtitle(subtitles[0])
-
 
 
 if __name__ == '__main__':
