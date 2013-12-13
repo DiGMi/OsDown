@@ -4,7 +4,8 @@ from pythonopensubtitles.utils import File
 import ConfigParser
 import urllib
 from tempfile import mktemp
-from gzip import GzipFile
+import gzip
+from numbers import Number
 import os
 
 
@@ -20,7 +21,7 @@ def find_subtitles(path, langid='all'):
     hash = f.get_hash()
     assert type(hash) == str
     size = f.size
-    assert type(size) == int
+    assert isinstance(size, Number)
     data = osmgr.search_subtitles([{'sublanguageid': langid,
                                    'moviehash': hash,
                                    'moviebytesize': size}])
@@ -32,9 +33,8 @@ def download_subtitle(subtitle):
     print 'Downloading %s...' % subtitle['SubFileName']
     tempfile = mktemp()
     urllib.urlretrieve(subtitle['SubDownloadLink'], tempfile)
-    gzip = GzipFile(tempfile)
-    with open(subtitle['SubFileName'], 'wb') as f:
-        f.write(gzip.read())
+    with gzip.open(tempfile, 'rb') as gz, open(subtitle['SubFileName'], 'wb') as f:
+        f.write(gz.read())
     os.remove(tempfile)
 
 
