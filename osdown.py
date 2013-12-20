@@ -56,7 +56,7 @@ def choose_subtitles(subtitles):
         if c < 1 or c > i:
             print 'Invalid option!'
             continue
-        return subtitles[i-1]
+        return subtitles[c-1]
 
 
 def usage():
