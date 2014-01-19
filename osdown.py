@@ -17,16 +17,19 @@ osmgr.login(config.get('Login', 'user'), config.get('Login', 'pass'))
 
 def find_subtitles(path, langid='all'):
     ''' Get a list of subtitles for a given file '''
-    f = File(path)
-    hash = f.get_hash()
-    assert type(hash) == str
-    size = f.size
-    assert isinstance(size, Number)
-    data = osmgr.search_subtitles([{'sublanguageid': langid,
+    try:
+        f = File(path)
+        hash = f.get_hash()
+        assert type(hash) == str
+        size = f.size
+        assert isinstance(size, Number)
+        data = osmgr.search_subtitles([{'sublanguageid': langid,
                                    'moviehash': hash,
                                    'moviebytesize': size}])
-    assert type(data) == list
-    return data
+        assert type(data) == list
+        return data
+    except:
+        return []
 
 
 def download_subtitle(subtitle, file_name=None):
@@ -66,29 +69,42 @@ def usage():
 
 def main():
     import sys
+    from glob import glob
     if len(sys.argv) < 2:
         usage()
         return
     langid = config.get('Language', 'langid')
-    rename = config.get('General', 'rename')
+    rename = config.getboolean('General', 'rename')
     if len(sys.argv) >= 3:
         langid = sys.argv[2]
-    subtitles = find_subtitles(sys.argv[1], langid)
 
-    if len(subtitles) == 0:
-        print "No subtitles found!"
-        return
+    files = glob(sys.argv[1])
 
-    to_download = subtitles[0]
-    if len(subtitles) > 1:
-        to_download = choose_subtitles(subtitles)
+    should_use_menu = False
+    if len(files) == 1:
+        should_use_menu = not config.getboolean('General', 'download_first')
+    else:
+        should_use_menu = not config.getboolean('General', 'download_first_on_multiple')
 
-    file_name = None
-    if rename:
-        file_name = '%s%s' % (os.path.splitext(sys.argv[1])[0],
-                               os.path.splitext(to_download['SubFileName'])[1])
 
-    download_subtitle(to_download, file_name)
+    for f in files:
+        subtitles = find_subtitles(f, langid)
+
+        if len(subtitles) == 0:
+            print "No subtitles found for '%s'!" % f
+            continue
+
+        to_download = subtitles[0]
+
+        if len(subtitles) > 1 and should_use_menu:
+            to_download = choose_subtitles(subtitles)
+
+        file_name = None
+        if rename:
+            file_name = '%s%s' % (os.path.splitext(f)[0],
+                                   os.path.splitext(to_download['SubFileName'])[1])
+
+        download_subtitle(to_download, file_name)
 
 
 if __name__ == '__main__':
