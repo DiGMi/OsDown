@@ -78,7 +78,7 @@ def main():
     if len(sys.argv) >= 3:
         langid = sys.argv[2]
 
-    files = glob(sys.argv[1])
+    files = glob(sys.argv[1].replace('[','[[]'))
 
     should_use_menu = False
     if len(files) == 1:
